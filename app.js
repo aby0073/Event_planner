@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const app = express();
 const path = require('path');
-const eventRoutes = require('./routes/eventRoutes');
+// const eventRoutes = require('./routes/eventRoutes');
 
 require('dotenv').config();
 
@@ -22,8 +22,7 @@ mongoose.connect(process.env.DB_URI
 .catch((err) => console.error('MongoDB connection error:', err));
 
 // Routes
-const eventrouter = require('../event_planner/routes/eventRoutes'); // Adjust path based on your file structure
-app.use('/', eventrouter);
+const eventrouter = require('./routes/eventRoutes'); 
 app.use(express.static(path.join(__dirname,'public')));
 
 app.get('/',(req,res)=>{
