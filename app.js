@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const app = express();
 const path = require('path');
-const eventRoutes = require('./event_planner/routes/eventRoutes');
+const eventRoutes = require('./routes/eventRoutes');
 
 require('dotenv').config();
 
