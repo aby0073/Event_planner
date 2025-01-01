@@ -7,7 +7,7 @@ const path = require('path');
 
 require('dotenv').config();
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
 // Middleware
 app.use(cors()); // Enable CORS
@@ -31,5 +31,5 @@ app.get('/',(req,res)=>{
 
 // Start Server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on ${PORT}`);
 });
