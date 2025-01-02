@@ -224,118 +224,138 @@ body {
     </section>
 
     <script>
-        async function createevent() {
-            const Name = document.getElementById('Name').value;
-            const imgUrl = document.getElementById('imgUrl').value;
-            const eventTime = document.getElementById('eventTime').value;
-            const eventDate = document.getElementById('eventDate').value;
-
-            const response = await fetch('https://event-planner-6liq.onrender.com/events', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ Name, imgUrl, eventTime, eventDate })
-            });
-
-            if (response.ok) {
-                document.getElementById('Name').value = '';
-                document.getElementById('imgUrl').value = '';
-                document.getElementById('eventTime').value = '';
-                document.getElementById('eventDate').value = '';
-                fetchEvents();
-            } else {
-                console.error("Failed to connect", response.statusText);
-            }
-        }
-
+        let currentEditId = null; // Variable to store the current event ID being edited
+    
+        // Function to fetch and display all events
         async function fetchEvents() {
-            const response = await fetch('https://event-planner-6liq.onrender.com/events');
-            const events = await response.json();
-            const container = document.getElementById('eventsContainer'); 
-            container.innerHTML = '';
-            events.forEach(event => {
-                const eventDiv = document.createElement('div');
-                eventDiv.className = 'event';
-                eventDiv.innerHTML = `
-                    <h2>${event.Name}</h2>
-                    <img src="${event.imgUrl}" alt="No image found"">
-                    <small>ON: ${new Date(event.eventDate).toLocaleString()}</small>
-                    <div class="button2">
-                        <button class="edit-btn" onclick="openEditModal('${event._id}', '${event.Name}', '${event.imgUrl}','${event.eventTime}','${event.eventDate}')">Edit</button>
-                        <button class="delete-btn" onclick="deleteEvent('${event._id}')">Delete</button>
-                    </div>`;
-                container.appendChild(eventDiv);
-            });
+          const response = await fetch('https://event-planner-6liq.onrender.com/events');
+          const events = await response.json();
+          const container = document.getElementById('events-container');
+          container.innerHTML = ''; // Clear the container
+    
+          events.forEach(event => {
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event';
+            eventDiv.innerHTML = `
+                <h2>${event.Name}</h2>
+                <img src="${event.imgUrl}" alt="No image found">
+                <small>ON: ${new Date(event.eventDate).toLocaleString()}</small>
+                <div class="button2">
+                    <button class="edit-btn" onclick="openEditModal('${event._id}', '${event.Name}', '${event.imgUrl}', '${event.eventTime}', '${event.eventDate}')">Edit</button>
+                    <button class="delete-btn" onclick="deleteEvent('${event._id}')">Delete</button>
+                </div>`;
+            container.appendChild(eventDiv); // Append each event to the container
+          });
         }
-
-        window.onload = fetchEvents;
-       
-
-function openEditModal(id, Name, imgUrl, eventTime, eventDate) {
-    currentEditId = id; // Set the ID of the current event being edited
-    // Set form fields in the edit modal with the existing event data
-    document.getElementById('edit-Name').value = Name;
-    document.getElementById('edit-imgUrl').value = imgUrl;
-    document.getElementById('edit-eventTime').value = eventTime;
-    document.getElementById('edit-eventDate').value = eventDate;
-    document.getElementById('editModal').style.display = 'block';
-}
-
-async function editEvent(event) {
-    // event.preventDefault(); // Prevent the default form submission
-
-    // Retrieve updated values from the edit form
-    const Name = document.getElementById('edit-Name').value;
-    const imgUrl = document.getElementById('edit-imgUrl').value;
-    const eventTime = document.getElementById('edit-eventTime').value;
-    const eventDate = document.getElementById('edit-eventDate').value;
-
-    if (currentEditId) {
-        // Send a PUT request with the updated event data
-        const response = await fetch(`https://event-planner-6liq.onrender.com/events/${currentEditId}`, {
-            method: 'PUT',
+    
+        // Function to create a new event
+        async function createEvent(e) {
+          e.preventDefault();
+          const Name = document.getElementById('Name').value;
+          const imgUrl = document.getElementById('imgUrl').value;
+          const eventTime = document.getElementById('eventTime').value;
+          const eventDate = document.getElementById('eventDate').value;
+    
+          // Validate if all fields are filled
+          if (!Name || !imgUrl || !eventTime || !eventDate) {
+            alert('Please fill in all fields.');
+            return;
+          }
+    
+          const response = await fetch('https://event-planner-6liq.onrender.com/events', {
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+              'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ Name, imgUrl, eventTime, eventDate })
-        });
-
-        if (response.ok) {
-            fetchEvents(); // Refresh the list of events after successful update
-            closeModal();  // Close the modal
-        } else {
-            console.error('Failed to update event:', response.statusText);
+            body: JSON.stringify({ Name, imgUrl, eventTime, eventDate }) // Send event data to server
+          });
+    
+          if (response.ok) {
+            document.getElementById('Name').value = ''; // Clear input fields
+            document.getElementById('imgUrl').value = '';
+            document.getElementById('eventTime').value = '';
+            document.getElementById('eventDate').value = '';
+            fetchEvents(); // Refresh the event list
+          } else {
+            console.error('Failed to create event:', response.statusText);
+          }
         }
-    }
-}
-async function deleteEvent(id) {
-            const response = await fetch(`https://event-planner-6liq.onrender.com/events/${id}`, {
-                method: 'DELETE'
+    
+        // Function to open the edit modal with current event data
+        function openEditModal(id, Name, imgUrl, eventTime, eventDate) {
+          currentEditId = id; // Set current edit ID
+          document.getElementById('edit-Name').value = Name; // Populate form with current data
+          document.getElementById('edit-imgUrl').value = imgUrl;
+          document.getElementById('edit-eventTime').value = eventTime;
+          document.getElementById('edit-eventDate').value = eventDate;
+          document.getElementById('editModal').style.display = 'block'; // Show the modal
+        }
+    
+        // Function to edit an existing event
+        async function editEvent(e) {
+          e.preventDefault();
+          const Name = document.getElementById('edit-Name').value;
+          const imgUrl = document.getElementById('edit-imgUrl').value;
+          const eventTime = document.getElementById('edit-eventTime').value;
+          const eventDate = document.getElementById('edit-eventDate').value;
+    
+          // Validate if all fields are filled
+          if (!Name || !imgUrl || !eventTime || !eventDate) {
+            alert('Please fill in all fields.');
+            return;
+          }
+    
+          if (currentEditId) {
+            const response = await fetch(`https://event-planner-6liq.onrender.com/events/${currentEditId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ Name, imgUrl, eventTime, eventDate }) // Send updated event data to server
             });
-
+    
             if (response.ok) {
-                fetchEvents();
+              fetchEvents(); // Refresh the event list
+              closeModal(); // Close the modal
             } else {
-                console.error('Failed to delete event:', response.statusText);
+              console.error('Failed to update event:', response.statusText);
             }
+          }
         }
-
+    
+        // Function to delete an event
+        async function deleteEvent(id) {
+          const response = await fetch(`https://event-planner-6liq.onrender.com/events/${id}`, {
+            method: 'DELETE'
+          });
+    
+          if (response.ok) {
+            fetchEvents(); // Refresh the event list
+          } else {
+            console.error('Failed to delete event:', response.statusText);
+          }
+        }
+    
+        // Function to close the edit modal
         function closeModal() {
-            document.getElementById('editModal').style.display = 'none';
-            currentEditId = null;
+          document.getElementById('editModal').style.display = 'none'; // Hide the modal
+          currentEditId = null; // Clear the current edit ID
         }
-
-        document.getElementById('edit-form').addEventListener('submit', editEvent);
-        document.querySelector('.close-btn').addEventListener('click', closeModal);
-
+    
+        // Event listeners
+        document.getElementById('event-form').addEventListener('submit', createEvent); // Submit event for creating an event
+        document.getElementById('edit-form').addEventListener('submit', editEvent); // Submit event for editing an event
+        document.querySelector('.close-btn').addEventListener('click', closeModal); // Click event for closing the modal
+    
+        window.onload = fetchEvents; // Fetch events on page load
+    
+        // Close modal if clicking outside of it
         window.onclick = function(event) {
-            if (event.target === document.getElementById('editModal')) {
-                closeModal();
-            }
+          if (event.target === document.getElementById('editModal')) {
+            closeModal();
+          }
         }
-
-
     </script>
+    
 </body>
 </html>
